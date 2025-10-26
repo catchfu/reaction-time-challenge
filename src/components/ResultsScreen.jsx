@@ -6,7 +6,9 @@ const ResultsScreen = ({
   isPersonalBest,
   onPlayAgain,
   onBackToHome,
-  currentMode
+  currentMode,
+  onShowAnalytics,
+  onShowExport
 }) => {
   const tier = getPerformanceTier(stats.average);
 
@@ -218,6 +220,29 @@ const ResultsScreen = ({
             {formatTime(stats.standardDeviation)}
           </span>
         </div>
+      </div>
+
+      <div style={{
+        display: 'flex',
+        gap: '1rem',
+        justifyContent: 'center',
+        marginBottom: '1rem',
+        flexWrap: 'wrap'
+      }}>
+        <button
+          onClick={onShowAnalytics}
+          className="button-secondary"
+          style={{ fontSize: '0.95rem' }}
+        >
+          📊 View Analytics
+        </button>
+        <button
+          onClick={onShowExport}
+          className="button-secondary"
+          style={{ fontSize: '0.95rem' }}
+        >
+          📤 Export Data
+        </button>
       </div>
 
       <div className="action-buttons">

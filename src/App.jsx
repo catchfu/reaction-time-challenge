@@ -6,6 +6,8 @@ import { isPersonalBest } from './utils/statistics';
 import LandingPage from './components/LandingPage';
 import GameScreen from './components/GameScreen';
 import ResultsScreen from './components/ResultsScreen';
+import AnalyticsDashboard from './components/AnalyticsDashboard';
+import ExportModal from './components/ExportModal';
 
 const SCREENS = {
   LANDING: 'landing',
@@ -16,6 +18,8 @@ const SCREENS = {
 function App() {
   const [currentScreen, setCurrentScreen] = useState(SCREENS.LANDING);
   const [selectedMode, setSelectedMode] = useState('standard');
+  const [showAnalytics, setShowAnalytics] = useState(false);
+  const [showExport, setShowExport] = useState(false);
 
   const {
     gameState,
@@ -30,7 +34,7 @@ function App() {
     getSessionStats
   } = useGameState(selectedMode);
 
-  const { addSession } = useGameSessions();
+  const { sessions, addSession } = useGameSessions();
   const { profile, updateProfile } = useUserProfile();
 
   // Handle screen transitions
@@ -104,6 +108,9 @@ function App() {
             onStartGame={handleStartGame}
             selectedMode={selectedMode}
             onSelectMode={handleModeSelect}
+            onShowAnalytics={() => setShowAnalytics(true)}
+            onShowExport={() => setShowExport(true)}
+            sessionsCount={sessions.length}
           />
         );
 
@@ -132,6 +139,8 @@ function App() {
             onPlayAgain={handlePlayAgain}
             onBackToHome={handleBackToHome}
             currentMode={currentMode}
+            onShowAnalytics={() => setShowAnalytics(true)}
+            onShowExport={() => setShowExport(true)}
           />
         );
 
@@ -144,6 +153,24 @@ function App() {
     <div className="app">
       {renderCurrentScreen()}
 
+      {/* Analytics Dashboard Modal */}
+      {showAnalytics && (
+        <AnalyticsDashboard
+          sessions={sessions}
+          profile={profile}
+          onClose={() => setShowAnalytics(false)}
+        />
+      )}
+
+      {/* Export Modal */}
+      {showExport && (
+        <ExportModal
+          sessions={sessions}
+          profile={profile}
+          onClose={() => setShowExport(false)}
+        />
+      )}
+
       {/* Footer */}
       <footer style={{
         marginTop: '3rem',
@@ -152,9 +179,9 @@ function App() {
         opacity: 0.5,
         fontSize: '0.85rem'
       }}>
-        <div>Reaction Time Challenge</div>
+        <div>Reaction Time Challenge - Phase 2 Enhanced</div>
         <div style={{ marginTop: '0.5rem' }}>
-          Built with ⚡ and React
+          Built with ⚡, React, and Recharts
         </div>
       </footer>
     </div>

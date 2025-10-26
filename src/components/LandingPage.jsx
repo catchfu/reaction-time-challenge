@@ -1,13 +1,61 @@
 import React from 'react';
 import { GAME_MODES_DATA } from '../data/gameModes';
 
-const LandingPage = ({ onStartGame, selectedMode, onSelectMode }) => {
+const LandingPage = ({
+  onStartGame,
+  selectedMode,
+  onSelectMode,
+  onShowAnalytics,
+  onShowExport,
+  sessionsCount = 0
+}) => {
   return (
     <div style={{ maxWidth: '900px', margin: '0 auto', padding: '2rem' }}>
-      <h1 className="title">⚡ Reaction Time Challenge</h1>
-      <p className="subtitle">
-        Test your reflexes and see how fast you can react!
-      </p>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+        <div>
+          <h1 className="title">⚡ Reaction Time Challenge</h1>
+          <p className="subtitle">
+            Test your reflexes and see how fast you can react!
+          </p>
+        </div>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button
+            onClick={onShowAnalytics}
+            className="button-secondary"
+            style={{ fontSize: '0.9rem', padding: '0.5rem 1rem' }}
+            disabled={sessionsCount === 0}
+          >
+            📊 Analytics
+          </button>
+          <button
+            onClick={onShowExport}
+            className="button-secondary"
+            style={{ fontSize: '0.9rem', padding: '0.5rem 1rem' }}
+            disabled={sessionsCount === 0}
+          >
+            📤 Export
+          </button>
+        </div>
+      </div>
+
+      {sessionsCount > 0 && (
+        <div style={{
+          marginBottom: '1rem',
+          padding: '0.75rem',
+          backgroundColor: 'rgba(76, 175, 80, 0.1)',
+          borderRadius: '8px',
+          border: '1px solid #4CAF50',
+          fontSize: '0.9rem'
+        }}>
+          📈 You have {sessionsCount} game session{sessionsCount !== 1 ? 's' : ''} recorded!
+          <button
+            onClick={onShowAnalytics}
+            style={{ marginLeft: '1rem', fontSize: '0.85rem', padding: '0.25rem 0.75rem' }}
+          >
+            View Analytics →
+          </button>
+        </div>
+      )}
 
       <div style={{ margin: '3rem 0' }}>
         <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>

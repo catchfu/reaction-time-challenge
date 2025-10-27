@@ -2,12 +2,18 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useGameState, GAME_STATES } from './hooks/useGameState';
 import { useGameSessions, useUserProfile } from './hooks/useLocalStorage';
 import { isPersonalBest } from './utils/statistics';
+import { PremiumProvider } from './context/PremiumContext';
+import { trackRevenueEvent } from './utils/revenueTracking';
 
 import LandingPage from './components/LandingPage';
 import GameScreen from './components/GameScreen';
 import ResultsScreen from './components/ResultsScreen';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
 import ExportModal from './components/ExportModal';
+import SubscriptionModal from './components/SubscriptionModal';
+import PremiumGate from './components/PremiumGate';
+import SubscriptionManagement from './components/SubscriptionManagement';
+import Ad from './components/Ad';
 
 const SCREENS = {
   LANDING: 'landing',
@@ -15,11 +21,15 @@ const SCREENS = {
   RESULTS: 'results'
 };
 
-function App() {
+function AppContent() {
   const [currentScreen, setCurrentScreen] = useState(SCREENS.LANDING);
   const [selectedMode, setSelectedMode] = useState('standard');
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [showExport, setShowExport] = useState(false);
+  const [showSubscription, setShowSubscription] = useState(false);
+  const [showSubscriptionMgmt, setShowSubscriptionMgmt] = useState(false);
+  const [premiumGate, setPremiumGate] = useState(null);
+  const [gameCount, setGameCount] = useState(0);
 
   const {
     gameState,
@@ -82,6 +92,15 @@ function App() {
       // Add session to storage
       addSession(newSession);
 
+      // Track revenue event
+      trackRevenueEvent('game_completed', {
+        mode: currentMode,
+        stats
+      });
+
+      // Update game count for ads
+      setGameCount(prev => prev + 1);
+
       // Update profile statistics
       const newTotalGames = (profile.totalGamesPlayed || 0) + 1;
       const newBestTime = personalBest === null || stats.best < personalBest
@@ -100,6 +119,17 @@ function App() {
     setSelectedMode(mode);
   }, []);
 
+  // Show subscription modal
+  const handleShowSubscription = useCallback(() => {
+    trackRevenueEvent('subscription_modal_viewed');
+    setShowSubscription(true);
+  }, []);
+
+  // Show premium gate
+  const handleShowPremiumGate = useCallback((feature) => {
+    setPremiumGate(feature);
+  }, []);
+
   const renderCurrentScreen = () => {
     switch (currentScreen) {
       case SCREENS.LANDING:
@@ -110,6 +140,8 @@ function App() {
             onSelectMode={handleModeSelect}
             onShowAnalytics={() => setShowAnalytics(true)}
             onShowExport={() => setShowExport(true)}
+            onShowSubscription={handleShowSubscription}
+            onShowSubscriptionMgmt={() => setShowSubscriptionMgmt(true)}
             sessionsCount={sessions.length}
           />
         );
@@ -141,6 +173,7 @@ function App() {
             currentMode={currentMode}
             onShowAnalytics={() => setShowAnalytics(true)}
             onShowExport={() => setShowExport(true)}
+            onShowSubscription={handleShowSubscription}
           />
         );
 
@@ -148,6 +181,9 @@ function App() {
         return null;
     }
   };
+
+  // Show ad after every 3 games (for non-premium users)
+  const shouldShowAd = gameCount > 0 && gameCount % 3 === 0;
 
   return (
     <div className="app">
@@ -171,6 +207,36 @@ function App() {
         />
       )}
 
+      {/* Subscription Modal */}
+      {showSubscription && (
+        <SubscriptionModal
+          onClose={() => setShowSubscription(false)}
+          onStartTrial={() => {}}
+        />
+      )}
+
+      {/* Subscription Management Modal */}
+      {showSubscriptionMgmt && (
+        <SubscriptionManagement
+          onClose={() => setShowSubscriptionMgmt(false)}
+        />
+      )}
+
+      {/* Premium Gate */}
+      {premiumGate && (
+        <PremiumGate
+          feature={premiumGate}
+          onUpgrade={() => {
+            setPremiumGate(null);
+            setShowSubscription(true);
+          }}
+          onClose={() => setPremiumGate(null)}
+        />
+      )}
+
+      {/* Ad - Show after every 3 games */}
+      {shouldShowAd && <Ad position="interstitial" />}
+
       {/* Footer */}
       <footer style={{
         marginTop: '3rem',
@@ -179,12 +245,20 @@ function App() {
         opacity: 0.5,
         fontSize: '0.85rem'
       }}>
-        <div>Reaction Time Challenge - Phase 2 Enhanced</div>
+        <div>Reaction Time Challenge - Phase 4 Monetization</div>
         <div style={{ marginTop: '0.5rem' }}>
-          Built with ⚡, React, and Recharts
+          Built with ⚡, React, Recharts & Premium Features
         </div>
       </footer>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <PremiumProvider>
+      <AppContent />
+    </PremiumProvider>
   );
 }
 
